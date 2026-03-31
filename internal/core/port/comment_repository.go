@@ -25,7 +25,6 @@ type CommentRepository interface {
 	Update(ctx context.Context, comment *domain.Comment) error
 	Delete(ctx context.Context, id string) error
 	List(ctx context.Context, params CommentListParams) (*CommentListResult, error)
-	ListAllByPost(ctx context.Context, postID string) ([]*domain.Comment, error)
 	CountByPost(ctx context.Context, postID string) (int, error)
 	Exists(ctx context.Context, id string) (bool, error)
 }
