@@ -15,6 +15,7 @@ docker ps
 
 Запуск через докер-композ:
 docker-compose up comment-service-memory или docker-compose up comment-service-postgres
+
 Сервер доступен по адресу для режима in-memory: http://localhost:8080
 Сервер доступен по адресу для режима postgres: http://localhost:8081
 
