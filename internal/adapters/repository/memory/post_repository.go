@@ -3,12 +3,10 @@ package memory
 import (
 	"context"
 	"errors"
-	"strings"
 	"sync"
 	"time"
 
 	"github.com/Kiseshik/CommentService.git/internal/core/domain"
-	"github.com/Kiseshik/CommentService.git/internal/core/port"
 	"github.com/Kiseshik/CommentService.git/internal/utils"
 )
 
@@ -76,22 +74,13 @@ func (r *PostRepository) Exists(ctx context.Context, id string) (bool, error) {
 	return exists, nil
 }
 
-func (r *PostRepository) List(ctx context.Context, params port.PostListParams) (*port.PostListResult, error) {
+func (r *PostRepository) List(ctx context.Context) ([]*domain.Post, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	filtered := make([]*domain.Post, 0, len(r.store))
+	posts := make([]*domain.Post, 0, len(r.store))
 	for _, p := range r.store {
-		if params.AuthorID != "" && p.AuthorID != params.AuthorID {
-			continue
-		}
-		if params.Title != "" && !strings.Contains(p.Title, params.Title) {
-			continue
-		}
-		if params.CommentsEnabled != nil && p.CommentsEnabled != *params.CommentsEnabled {
-			continue
-		}
-		filtered = append(filtered, p)
+		posts = append(posts, p)
 	}
-	utils.SortPosts(filtered)
-	return utils.PaginatePosts(filtered, params)
+	utils.SortPosts(posts)
+	return posts, nil
 }
