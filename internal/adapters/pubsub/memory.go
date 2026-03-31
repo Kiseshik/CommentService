@@ -6,18 +6,18 @@ import (
 	"github.com/Kiseshik/CommentService.git/internal/core/domain"
 )
 
-type InMemoryPubSub struct {
+type MemoryPubSub struct {
 	mu          sync.RWMutex
 	subscribers map[string][]chan *domain.Comment
 }
 
-func NewInMemoryPubSub() *InMemoryPubSub {
-	return &InMemoryPubSub{
+func NewInMemoryPubSub() *MemoryPubSub {
+	return &MemoryPubSub{
 		subscribers: make(map[string][]chan *domain.Comment),
 	}
 }
 
-func (ps *InMemoryPubSub) Subscribe(postID string) (<-chan *domain.Comment, func()) {
+func (ps *MemoryPubSub) Subscribe(postID string) (<-chan *domain.Comment, func()) {
 	ps.mu.Lock()
 	defer ps.mu.Unlock()
 	ch := make(chan *domain.Comment, 10)
@@ -25,7 +25,6 @@ func (ps *InMemoryPubSub) Subscribe(postID string) (<-chan *domain.Comment, func
 	unsubscribe := func() {
 		ps.mu.Lock()
 		defer ps.mu.Unlock()
-
 		subs := ps.subscribers[postID]
 		for i, sub := range subs {
 			if sub == ch {
@@ -38,7 +37,7 @@ func (ps *InMemoryPubSub) Subscribe(postID string) (<-chan *domain.Comment, func
 	return ch, unsubscribe
 }
 
-func (ps *InMemoryPubSub) Publish(postID string, comment *domain.Comment) {
+func (ps *MemoryPubSub) Publish(postID string, comment *domain.Comment) {
 	ps.mu.RLock()
 	defer ps.mu.RUnlock()
 	for _, ch := range ps.subscribers[postID] {
