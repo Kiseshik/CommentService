@@ -5,10 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/Kiseshik/CommentService.git/internal/core/domain"
-	"github.com/Kiseshik/CommentService.git/internal/core/port"
 	"github.com/jmoiron/sqlx"
 )
 
