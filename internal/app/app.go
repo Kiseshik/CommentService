@@ -49,14 +49,16 @@ func New(cfg *config.Config) (*App, error) {
 
 	app.initServices()
 	/*
-		app.initPubSub()
-		if err := app.initGraphQL(); err != nil {
-			return nil, fmt.Errorf("initGraphQL: %w", err)
+			app.initPubSub()
+			if err := app.initGraphQL(); err != nil {
+				return nil, fmt.Errorf("initGraphQL: %w", err)
+			}
+
+		if err := app.initHTTPServer(); err != nil {
+			return nil, fmt.Errorf("initHTTPServer: %w", err)
 		}
+
 	*/
-	if err := app.initHTTPServer(); err != nil {
-		return nil, fmt.Errorf("initHTTPServer: %w", err)
-	}
 	return app, nil
 }
 
