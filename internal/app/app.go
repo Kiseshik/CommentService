@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
@@ -57,7 +56,6 @@ func New(cfg *config.Config) (*App, error) {
 		if err := app.initHTTPServer(); err != nil {
 			return nil, fmt.Errorf("initHTTPServer: %w", err)
 		}
-
 	*/
 	return app, nil
 }
@@ -116,11 +114,14 @@ func (app *App) initHTTPServer() error {
 }
 
 func (app *App) Run() error {
-	go func() {
-		if err := app.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Printf("server error: %v", err)
-		}
-	}()
+	/*
+		go func() {
+			if err := app.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+				log.Printf("server error: %v", err)
+			}
+		}()*/
+	//временно офнуто потому что не реализовано графкл, поэтому сервак ложится из-за того что
+	//хендер нил поинтер
 	<-app.ctx.Done()
 	return nil
 }
