@@ -2,9 +2,16 @@ package dto
 
 import "time"
 
+type ListCommentsRequest struct {
+	PostID   string  `json:"postId"`
+	ParentID *string `json:"parentId,omitempty"`
+	Limit    int     `json:"limit"`
+	Cursor   string  `json:"cursor"`
+}
+
 type CreateCommentRequest struct {
 	PostID   string  `json:"postId"`
-	ParentID *string `json:"parentId"`
+	ParentID *string `json:"parentId,omitempty"`
 	AuthorID string  `json:"authorId"`
 	Content  string  `json:"content"`
 }

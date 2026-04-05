@@ -55,6 +55,14 @@ func (s *PostService) ListPosts(ctx context.Context) ([]*domain.Post, error) {
 	return posts, nil
 }
 
+func (s *PostService) UpdatePost(ctx context.Context, post *domain.Post) error {
+	post.UpdatedAt = time.Now()
+	if err := s.postRepo.Update(ctx, post); err != nil {
+		return fmt.Errorf("failed to update post: %w", err)
+	}
+	return nil
+}
+
 func (s *PostService) ToggleComments(ctx context.Context, postID string, enabled bool) error {
 	post, err := s.postRepo.GetByID(ctx, postID)
 	if err != nil {

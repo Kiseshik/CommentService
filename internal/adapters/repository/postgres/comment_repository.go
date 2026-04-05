@@ -171,6 +171,12 @@ const listCommentsQuery = `
 
 func (r *CommentRepository) List(ctx context.Context, params port.CommentListParams) (*port.CommentListResult, error) {
 	var nextCursor string
+
+	limit := params.Limit
+	if limit <= 0 {
+		limit = 20
+	}
+
 	query := listCommentsQuery
 	args := []interface{}{params.PostID}
 	argIdx := 2

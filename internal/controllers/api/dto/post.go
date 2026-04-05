@@ -9,10 +9,20 @@ type CreatePostRequest struct {
 	CommentsEnabled bool   `json:"commentsEnabled"`
 }
 
+type GetPostRequest struct {
+	ID string `json:"id"`
+}
+
 type UpdatePostRequest struct {
+	ID              string  `json:"id"`
 	Title           *string `json:"title,omitempty"`
 	Content         *string `json:"content,omitempty"`
 	CommentsEnabled *bool   `json:"commentsEnabled,omitempty"`
+}
+
+type ToggleCommentsRequest struct {
+	ID      string `json:"id"`
+	Enabled bool   `json:"enabled"`
 }
 
 type PostResponse struct {

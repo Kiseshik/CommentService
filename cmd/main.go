@@ -23,7 +23,6 @@ func main() {
 	}
 
 	go func() {
-		log.Printf("server starting on %s", cfg.ListenAddr)
 		if err := application.Run(); err != nil {
 			log.Printf("server error: %v", err)
 		}

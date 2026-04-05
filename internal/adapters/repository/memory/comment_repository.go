@@ -92,6 +92,12 @@ func (r *CommentRepository) CountByPost(ctx context.Context, postID string) (int
 func (r *CommentRepository) List(ctx context.Context, params port.CommentListParams) (*port.CommentListResult, error) {
 	r.mu.RLock() //вероятно ботлнек для хабров и прочих хайлоадов, надо бы чего-то придумывать, инексация?
 	defer r.mu.RUnlock()
+
+	limit := params.Limit
+	if limit <= 0 {
+		limit = 20
+	}
+
 	count, err := r.CountByPost(ctx, params.PostID) // с расчетом на индексацию, пока так
 	if err != nil {
 		return nil, err

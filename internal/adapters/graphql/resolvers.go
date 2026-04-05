@@ -1,10 +1,6 @@
 package graphql
 
-import (
-	"github.com/Kiseshik/CommentService.git/internal/core/port"
-	"github.com/Kiseshik/CommentService.git/internal/core/service"
-)
-
+/*
 type Resolver struct {
 	postService    *service.PostService
 	commentService *service.CommentService
@@ -37,3 +33,5 @@ func (r *Resolver) Mutation() MutationResolver {
 func (r *Resolver) Subscription() SubscriptionResolver {
 	return &subscriptionResolver{r}
 }
+
+*/
