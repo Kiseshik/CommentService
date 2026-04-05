@@ -19,6 +19,14 @@ type Comment struct {
 	UpdatedAt time.Time `db:"updated_at"`
 }
 
+func (c *Comment) GetCreatedAt() time.Time {
+	return c.CreatedAt
+}
+
+func (c *Comment) GetID() string {
+	return c.ID
+}
+
 func (c *Comment) Validate() error {
 	if c.PostID == "" {
 		return errors.New("comment post_id is required")

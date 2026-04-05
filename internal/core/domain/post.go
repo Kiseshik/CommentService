@@ -20,6 +20,14 @@ type Post struct {
 	CommentsEnabled bool      `db:"comments_enabled"`
 }
 
+func (p *Post) GetCreatedAt() time.Time {
+	return p.CreatedAt
+}
+
+func (p *Post) GetID() string {
+	return p.ID
+}
+
 func (p *Post) Validate() error {
 	if p.Title == "" {
 		return errors.New("post title is required")

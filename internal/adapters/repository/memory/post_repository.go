@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/Kiseshik/CommentService.git/internal/core/domain"
-	"github.com/Kiseshik/CommentService.git/internal/utils"
 )
 
 type PostRepository struct {
@@ -81,6 +80,6 @@ func (r *PostRepository) List(ctx context.Context) ([]*domain.Post, error) {
 	for _, p := range r.store {
 		posts = append(posts, p)
 	}
-	utils.SortPosts(posts)
+	sortByCreatedAt(posts)
 	return posts, nil
 }

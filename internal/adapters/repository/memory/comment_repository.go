@@ -8,7 +8,6 @@ import (
 
 	"github.com/Kiseshik/CommentService.git/internal/core/domain"
 	"github.com/Kiseshik/CommentService.git/internal/core/port"
-	"github.com/Kiseshik/CommentService.git/internal/utils"
 )
 
 type CommentRepository struct {
@@ -115,7 +114,7 @@ func (r *CommentRepository) List(ctx context.Context, params port.CommentListPar
 		}
 		filtered = append(filtered, c)
 	}
-	utils.SortComments(filtered)
+	sortByCreatedAt(filtered)
 	return paginateComments(filtered, params)
 }
 
