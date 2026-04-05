@@ -116,5 +116,34 @@ func (r *CommentRepository) List(ctx context.Context, params port.CommentListPar
 		filtered = append(filtered, c)
 	}
 	utils.SortComments(filtered)
-	return utils.PaginateComments(filtered, params)
+	return paginateComments(filtered, params)
+}
+
+func paginateComments(comments []*domain.Comment, params port.CommentListParams) (*port.CommentListResult, error) {
+	start := 0
+	if params.Cursor != "" {
+		found := false
+		for i, c := range comments {
+			if c.ID == params.Cursor {
+				start = i + 1
+				found = true
+				break
+			}
+		}
+		if !found {
+			return nil, errors.New("invalid cursor: comment not found")
+		}
+	}
+	end := start + params.Limit
+	if end > len(comments) {
+		end = len(comments)
+	}
+	res := &port.CommentListResult{
+		Comments:    comments[start:end],
+		HasNextPage: end < len(comments),
+	}
+	if res.HasNextPage {
+		res.NextCursor = comments[end-1].ID
+	}
+	return res, nil
 }
