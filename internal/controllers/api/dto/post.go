@@ -21,8 +21,7 @@ type UpdatePostRequest struct {
 }
 
 type ToggleCommentsRequest struct {
-	ID      string `json:"id"`
-	Enabled bool   `json:"enabled"`
+	ID string `json:"id"`
 }
 
 type PostResponse struct {

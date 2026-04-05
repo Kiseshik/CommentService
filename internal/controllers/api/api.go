@@ -179,7 +179,7 @@ func (a *api) ToggleComments(c *gin.Context) {
 		return
 	}
 
-	if err := a.postService.ToggleComments(c.Request.Context(), req.ID, req.Enabled); err != nil {
+	if err := a.postService.ToggleComments(c.Request.Context(), req.ID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

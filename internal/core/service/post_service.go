@@ -63,12 +63,12 @@ func (s *PostService) UpdatePost(ctx context.Context, post *domain.Post) error {
 	return nil
 }
 
-func (s *PostService) ToggleComments(ctx context.Context, postID string, enabled bool) error {
+func (s *PostService) ToggleComments(ctx context.Context, postID string) error {
 	post, err := s.postRepo.GetByID(ctx, postID)
 	if err != nil {
 		return fmt.Errorf("failed to get post: %w", err)
 	}
-	post.CommentsEnabled = enabled
+	post.CommentsEnabled = !post.CommentsEnabled
 	post.UpdatedAt = time.Now()
 	if err := s.postRepo.Update(ctx, post); err != nil {
 		return fmt.Errorf("failed to update post: %w", err)
