@@ -43,26 +43,16 @@ func (s *CommentService) CreateComment(
 	if !post.CommentsEnabled {
 		return nil, domain.ErrCommentsDisabled
 	}
-	if len(content) == 0 {
-		return nil, domain.ErrEmptyComment
-	}
-	if len(content) > domain.MaxCommentLength {
-		return nil, domain.ErrCommentTooLong
-	}
 	if parentID != nil {
 		parent, err := s.commentRepo.GetByID(ctx, *parentID)
 		if err != nil {
 			return nil, domain.ErrParentNotFound
 		}
-		depth, err := s.getCommentDepth(ctx, *parentID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get comment depth: %w", err)
-		}
-		if depth >= MaxCommentDepth {
-			return nil, domain.ErrMaxDepthExceeded
+		if err := s.validateCommentDepth(ctx, *parentID); err != nil {
+			return nil, err
 		}
 		if parent.PostID != postID {
-			return nil, fmt.Errorf("parent comment belongs to different post")
+			return nil, domain.ErrParentFromDifferentPost
 		}
 	}
 
@@ -74,6 +64,9 @@ func (s *CommentService) CreateComment(
 		AuthorID:  authorID,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
+	}
+	if err := comment.Validate(); err != nil {
+		return nil, fmt.Errorf("%w: %v", domain.ErrInvalidInput, err)
 	}
 	if err := s.commentRepo.Create(ctx, comment); err != nil {
 		return nil, fmt.Errorf("failed to create comment: %w", err)
@@ -117,13 +110,13 @@ func (s *CommentService) ListComments(
 	return result, nil
 }
 
-func (s *CommentService) getCommentDepth(ctx context.Context, commentID string) (int, error) {
+func (s *CommentService) validateCommentDepth(ctx context.Context, commentID string) error {
 	depth := 0
 	currentID := commentID
 	for currentID != "" {
 		comment, err := s.commentRepo.GetByID(ctx, currentID)
 		if err != nil {
-			return 0, err
+			return err
 		}
 		if comment.ParentID == nil {
 			break
@@ -131,8 +124,8 @@ func (s *CommentService) getCommentDepth(ctx context.Context, commentID string) 
 		currentID = *comment.ParentID
 		depth++
 		if depth >= MaxCommentDepth {
-			return 0, domain.ErrMaxDepthExceeded
+			return domain.ErrMaxDepthExceeded
 		}
 	}
-	return depth, nil
+	return nil
 }

@@ -11,8 +11,9 @@ const (
 )
 
 var (
-	ErrPostNotFound      = errors.New("post not found")
-	ErrPostAlreadyExists = errors.New("post already exists")
+	ErrPostNotFound            = errors.New("post not found")
+	ErrPostAlreadyExists       = errors.New("post already exists")
+	ErrParentFromDifferentPost = errors.New("parent comment belongs to different post")
 )
 
 type Post struct {

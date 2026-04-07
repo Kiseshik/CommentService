@@ -42,10 +42,10 @@ func (c *Comment) Validate() error {
 		return errors.New("comment post_id is required")
 	}
 	if c.Content == "" {
-		return errors.New("comment content is required")
+		return ErrEmptyComment
 	}
 	if len(c.Content) > MaxCommentLength {
-		return errors.New("comment content exceeds maximum length")
+		return ErrCommentTooLong
 	}
 	if c.AuthorID == "" {
 		return errors.New("comment author_id is required")
