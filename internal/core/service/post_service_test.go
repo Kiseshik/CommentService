@@ -67,19 +67,19 @@ func TestPostService_ToggleComments(t *testing.T) {
 	require.NoError(t, err)
 	assert.True(t, post.CommentsEnabled)
 
-	err = postService.ToggleComments(ctx, post.ID, false)
+	err = postService.ToggleComments(ctx, post.ID)
 	require.NoError(t, err)
 	got, err := postService.GetPostByID(ctx, post.ID)
 	require.NoError(t, err)
 	assert.False(t, got.CommentsEnabled)
 
-	err = postService.ToggleComments(ctx, post.ID, true)
+	err = postService.ToggleComments(ctx, post.ID)
 	require.NoError(t, err)
 	got, err = postService.GetPostByID(ctx, post.ID)
 	require.NoError(t, err)
 	assert.True(t, got.CommentsEnabled)
 
-	err = postService.ToggleComments(ctx, "not-exists", true)
+	err = postService.ToggleComments(ctx, "not-exists")
 	assert.Error(t, err)
 }
 

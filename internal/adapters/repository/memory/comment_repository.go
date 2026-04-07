@@ -2,7 +2,6 @@ package memory
 
 import (
 	"context"
-	"errors"
 	"sync"
 	"time"
 
@@ -19,7 +18,7 @@ type CommentRepository struct {
 
 func NewCommentRepository() *CommentRepository {
 	return &CommentRepository{
-		store: make(map[string]*domain.Comment),
+		store: make(map[string]*domain.Comment), //сюда редис
 	}
 }
 
@@ -28,7 +27,7 @@ func (r *CommentRepository) GetByID(ctx context.Context, id string) (*domain.Com
 	defer r.mu.RUnlock()
 	c, ok := r.store[id]
 	if !ok {
-		return nil, errors.New("comment not found")
+		return nil, domain.ErrCommentNotFound
 	}
 	return c, nil
 }
@@ -37,7 +36,7 @@ func (r *CommentRepository) Create(ctx context.Context, comment *domain.Comment)
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if _, exists := r.store[comment.ID]; exists {
-		return errors.New("comment already exists")
+		return domain.ErrCommentAlreadyExists
 	}
 	now := time.Now()
 	comment.CreatedAt = now
@@ -51,7 +50,7 @@ func (r *CommentRepository) Update(ctx context.Context, comment *domain.Comment)
 	defer r.mu.Unlock()
 	existingCom, exists := r.store[comment.ID]
 	if !exists {
-		return errors.New("comment not found")
+		return domain.ErrCommentNotFound
 	}
 	comment.CreatedAt = existingCom.CreatedAt
 	comment.UpdatedAt = time.Now()
@@ -63,7 +62,7 @@ func (r *CommentRepository) Delete(ctx context.Context, id string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if _, exists := r.store[id]; !exists {
-		return errors.New("comment not found")
+		return domain.ErrCommentNotFound
 	}
 	delete(r.store, id)
 	return nil
@@ -130,7 +129,7 @@ func paginateComments(comments []*domain.Comment, params port.CommentListParams)
 			}
 		}
 		if !found {
-			return nil, errors.New("invalid cursor: comment not found")
+			return nil, domain.ErrInvalidCursor
 		}
 	}
 	end := start + params.Limit

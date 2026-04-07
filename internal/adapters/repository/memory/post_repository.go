@@ -2,7 +2,6 @@ package memory
 
 import (
 	"context"
-	"errors"
 	"sync"
 	"time"
 
@@ -15,7 +14,7 @@ type PostRepository struct {
 }
 
 func NewPostRepository() *PostRepository {
-	return &PostRepository{
+	return &PostRepository{ //redis
 		store: make(map[string]*domain.Post),
 	}
 }
@@ -25,7 +24,7 @@ func (r *PostRepository) GetByID(ctx context.Context, id string) (*domain.Post, 
 	defer r.mu.RUnlock()
 	p, ok := r.store[id]
 	if !ok {
-		return nil, errors.New("post not found")
+		return nil, domain.ErrPostNotFound
 	}
 	return p, nil
 }
@@ -34,7 +33,7 @@ func (r *PostRepository) Create(ctx context.Context, post *domain.Post) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if _, exists := r.store[post.ID]; exists {
-		return errors.New("post already exists")
+		return domain.ErrPostAlreadyExists
 	}
 	now := time.Now()
 	post.CreatedAt = now
@@ -48,7 +47,7 @@ func (r *PostRepository) Update(ctx context.Context, post *domain.Post) error {
 	defer r.mu.Unlock()
 	existingPost, exists := r.store[post.ID]
 	if !exists {
-		return errors.New("post not found")
+		return domain.ErrPostNotFound
 	}
 	post.CreatedAt = existingPost.CreatedAt
 	post.UpdatedAt = time.Now()
@@ -60,7 +59,7 @@ func (r *PostRepository) Delete(ctx context.Context, id string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if _, exists := r.store[id]; !exists {
-		return errors.New("post not found")
+		return domain.ErrPostNotFound
 	}
 	delete(r.store, id)
 	return nil

@@ -10,6 +10,11 @@ const (
 	MaxPostContentLength = 10000
 )
 
+var (
+	ErrPostNotFound      = errors.New("post not found")
+	ErrPostAlreadyExists = errors.New("post already exists")
+)
+
 type Post struct {
 	ID              string    `db:"id"`
 	Title           string    `db:"title"`
