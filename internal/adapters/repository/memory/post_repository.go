@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/Kiseshik/CommentService.git/internal/core/domain"
+	"github.com/Kiseshik/CommentService.git/internal/core/port"
+	"github.com/google/uuid"
 )
 
 type PostRepository struct {
@@ -29,30 +31,44 @@ func (r *PostRepository) GetByID(ctx context.Context, id string) (*domain.Post, 
 	return p, nil
 }
 
-func (r *PostRepository) Create(ctx context.Context, post *domain.Post) error {
+func (r *PostRepository) Create(ctx context.Context, params *port.CreatePostParams) (*domain.Post, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	if _, exists := r.store[post.ID]; exists {
-		return domain.ErrPostAlreadyExists
+	post := &domain.Post{
+		ID:              uuid.New().String(),
+		Title:           params.Title,
+		Content:         params.Content,
+		AuthorID:        params.AuthorID,
+		CommentsEnabled: params.CommentsEnabled,
+		CreatedAt:       time.Now(),
+		UpdatedAt:       time.Now(),
 	}
-	now := time.Now()
-	post.CreatedAt = now
-	post.UpdatedAt = now
 	r.store[post.ID] = post
-	return nil
+	return post, nil
 }
 
-func (r *PostRepository) Update(ctx context.Context, post *domain.Post) error {
+func (r *PostRepository) Update(ctx context.Context, params *port.UpdatePostParams) (*domain.Post, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	existingPost, exists := r.store[post.ID]
-	if !exists {
-		return domain.ErrPostNotFound
+
+	existing, ok := r.store[params.ID]
+	if !ok {
+		return nil, domain.ErrPostNotFound
 	}
-	post.CreatedAt = existingPost.CreatedAt
-	post.UpdatedAt = time.Now()
-	r.store[post.ID] = post
-	return nil
+
+	if params.Title != nil {
+		existing.Title = *params.Title
+	}
+	if params.Content != nil {
+		existing.Content = *params.Content
+	}
+	if params.CommentsEnabled != nil {
+		existing.CommentsEnabled = *params.CommentsEnabled
+	}
+	existing.UpdatedAt = time.Now() //кажется это чище чем прописывать апдейтит эт в бизнес слое, разве нет?
+
+	r.store[existing.ID] = existing
+	return existing, nil
 }
 
 func (r *PostRepository) Delete(ctx context.Context, id string) error {

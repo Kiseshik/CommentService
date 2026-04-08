@@ -5,8 +5,11 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/Kiseshik/CommentService.git/internal/core/domain"
+	"github.com/Kiseshik/CommentService.git/internal/core/port"
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -41,7 +44,17 @@ const createPostQuery = `
 	)
 `
 
-func (r *PostRepository) Create(ctx context.Context, post *domain.Post) error {
+func (r *PostRepository) Create(ctx context.Context, params *port.CreatePostParams) (*domain.Post, error) {
+	post := &domain.Post{
+		ID:              uuid.New().String(),
+		Title:           params.Title,
+		Content:         params.Content,
+		AuthorID:        params.AuthorID,
+		CommentsEnabled: params.CommentsEnabled,
+		CreatedAt:       time.Now(),
+		UpdatedAt:       time.Now(),
+	}
+
 	_, err := r.db.ExecContext(ctx, createPostQuery,
 		post.ID,
 		post.Title,
@@ -52,9 +65,9 @@ func (r *PostRepository) Create(ctx context.Context, post *domain.Post) error {
 		post.UpdatedAt,
 	)
 	if err != nil {
-		return fmt.Errorf("failed to create post: %w", err)
+		return nil, fmt.Errorf("failed to create post: %w", err)
 	}
-	return nil
+	return post, nil
 }
 
 const getPostByIDQuery = `
@@ -85,29 +98,30 @@ func (r *PostRepository) GetByID(ctx context.Context, id string) (*domain.Post, 
 const updatePostQuery = `
 	update posts
 	set
-		title = $1,
-		content = $2,
-		comments_enabled = $3,
+		title = COALESCE($1, title),
+		content = COALESCE($2, content),
+		comments_enabled = COALESCE($3, comments_enabled),
 		updated_at = $4
 	where id = $5
 `
 
-func (r *PostRepository) Update(ctx context.Context, post *domain.Post) error {
+func (r *PostRepository) Update(ctx context.Context, params *port.UpdatePostParams) (*domain.Post, error) {
+	updatedAt := time.Now()
 	result, err := r.db.ExecContext(ctx, updatePostQuery,
-		post.Title,
-		post.Content,
-		post.CommentsEnabled,
-		post.UpdatedAt,
-		post.ID,
+		params.Title,
+		params.Content,
+		params.CommentsEnabled,
+		updatedAt,
+		params.ID,
 	)
 	if err != nil {
-		return fmt.Errorf("failed to update post: %w", err)
+		return nil, fmt.Errorf("failed to update post: %w", err)
 	}
 	rows, _ := result.RowsAffected()
 	if rows == 0 {
-		return domain.ErrPostNotFound
+		return nil, domain.ErrPostNotFound
 	}
-	return nil
+	return r.GetByID(ctx, params.ID)
 }
 
 const existsPostQuery = `

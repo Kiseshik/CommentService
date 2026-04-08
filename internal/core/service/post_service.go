@@ -3,11 +3,9 @@ package service
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/Kiseshik/CommentService.git/internal/core/domain"
 	"github.com/Kiseshik/CommentService.git/internal/core/port"
-	"github.com/google/uuid"
 )
 
 type PostService struct {
@@ -21,22 +19,16 @@ func NewPostService(postRepo port.PostRepository) *PostService {
 }
 
 func (s *PostService) CreatePost(ctx context.Context, params *port.CreatePostParams) (*domain.Post, error) {
-	post := &domain.Post{
-		ID:              uuid.New().String(),
+	tempPost := &domain.Post{
 		Title:           params.Title,
 		Content:         params.Content,
 		AuthorID:        params.AuthorID,
 		CommentsEnabled: params.CommentsEnabled,
-		CreatedAt:       time.Now(),
-		UpdatedAt:       time.Now(),
 	}
-	if err := post.Validate(); err != nil {
+	if err := tempPost.Validate(); err != nil {
 		return nil, fmt.Errorf("%w: %v", domain.ErrInvalidInput, err)
 	}
-	if err := s.postRepo.Create(ctx, post); err != nil {
-		return nil, fmt.Errorf("failed to create post: %w", err)
-	}
-	return post, nil
+	return s.postRepo.Create(ctx, params)
 }
 
 func (s *PostService) GetPostByID(ctx context.Context, id string) (*domain.Post, error) {
@@ -55,12 +47,12 @@ func (s *PostService) ListPosts(ctx context.Context) ([]*domain.Post, error) {
 	return posts, nil
 }
 
-func (s *PostService) UpdatePost(ctx context.Context, post *domain.Post) error {
-	post.UpdatedAt = time.Now()
-	if err := s.postRepo.Update(ctx, post); err != nil {
-		return fmt.Errorf("failed to update post: %w", err)
+func (s *PostService) UpdatePost(ctx context.Context, params *port.UpdatePostParams) (*domain.Post, error) {
+	post, err := s.postRepo.Update(ctx, params)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update post: %w", err)
 	}
-	return nil
+	return post, nil
 }
 
 func (s *PostService) ToggleComments(ctx context.Context, postID string) error {
@@ -68,10 +60,13 @@ func (s *PostService) ToggleComments(ctx context.Context, postID string) error {
 	if err != nil {
 		return fmt.Errorf("failed to get post: %w", err)
 	}
-	post.CommentsEnabled = !post.CommentsEnabled
-	post.UpdatedAt = time.Now()
-	if err := s.postRepo.Update(ctx, post); err != nil {
-		return fmt.Errorf("failed to update post: %w", err)
+	newEnabled := !post.CommentsEnabled
+	_, err = s.postRepo.Update(ctx, &port.UpdatePostParams{
+		ID:              postID,
+		CommentsEnabled: &newEnabled,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to toggle comments: %w", err)
 	}
 	return nil
 }

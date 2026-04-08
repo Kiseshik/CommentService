@@ -139,24 +139,14 @@ func (api *api) UpdatePost(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	post, err := api.postService.GetPostByID(c.Request.Context(), req.ID)
+	params := &port.UpdatePostParams{
+		ID:              req.ID,
+		Title:           req.Title,
+		Content:         req.Content,
+		CommentsEnabled: req.CommentsEnabled,
+	}
+	post, err := api.postService.UpdatePost(c.Request.Context(), params)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
-		return
-	}
-
-	if req.Title != nil {
-		post.Title = *req.Title
-	}
-	if req.Content != nil {
-		post.Content = *req.Content
-	}
-	if req.CommentsEnabled != nil {
-		post.CommentsEnabled = *req.CommentsEnabled
-	}
-
-	if err := api.postService.UpdatePost(c.Request.Context(), post); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
