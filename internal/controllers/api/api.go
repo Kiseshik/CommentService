@@ -7,20 +7,19 @@ import (
 
 	"github.com/Kiseshik/CommentService.git/internal/controllers/api/dto"
 	"github.com/Kiseshik/CommentService.git/internal/core/port"
-	"github.com/Kiseshik/CommentService.git/internal/core/service"
 )
 
 // проверка на этапе компиляции что структура api реализует интерфейс port.Handler
 // var _ port.Handler = (*api)(nil)
 
 type api struct {
-	postService    *service.PostService
-	commentService *service.CommentService
+	postService    port.PostService
+	commentService port.CommentService
 }
 
 func NewApiImplementation(
-	postService *service.PostService,
-	commentService *service.CommentService,
+	postService port.PostService,
+	commentService port.CommentService,
 ) port.Handler {
 	return &api{
 		postService:    postService,
@@ -86,13 +85,14 @@ func (a *api) CreatePost(c *gin.Context) {
 		return
 	}
 
-	post, err := a.postService.CreatePost(
-		c.Request.Context(),
-		req.Title,
-		req.Content,
-		req.AuthorID,
-		req.CommentsEnabled,
-	)
+	params := &port.CreatePostParams{
+		Title:           req.Title,
+		Content:         req.Content,
+		AuthorID:        req.AuthorID,
+		CommentsEnabled: req.CommentsEnabled,
+	}
+
+	post, err := a.postService.CreatePost(c.Request.Context(), params)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -208,13 +208,14 @@ func (a *api) ListComments(c *gin.Context) {
 		return
 	}
 
-	result, err := a.commentService.ListComments(
-		c.Request.Context(),
-		req.PostID,
-		req.ParentID,
-		req.Cursor,
-		req.Limit,
-	)
+	params := &port.ListCommentParams{
+		PostID:   req.PostID,
+		ParentID: req.ParentID,
+		Cursor:   req.Cursor,
+		Limit:    req.Limit,
+	}
+
+	result, err := a.commentService.ListComments(c.Request.Context(), params)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -247,13 +248,14 @@ func (a *api) CreateComment(c *gin.Context) {
 		return
 	}
 
-	comment, err := a.commentService.CreateComment(
-		c.Request.Context(),
-		req.PostID,
-		req.ParentID,
-		req.AuthorID,
-		req.Content,
-	)
+	params := &port.CreateCommentParams{
+		PostID:   req.PostID,
+		ParentID: req.ParentID,
+		AuthorID: req.AuthorID,
+		Content:  req.Content,
+	}
+
+	comment, err := a.commentService.CreateComment(c.Request.Context(), params)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

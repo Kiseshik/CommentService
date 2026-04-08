@@ -20,13 +20,13 @@ func NewPostService(postRepo port.PostRepository) *PostService {
 	}
 }
 
-func (s *PostService) CreatePost(ctx context.Context, title, content, authorID string, commentsEnabled bool) (*domain.Post, error) {
+func (s *PostService) CreatePost(ctx context.Context, params *port.CreatePostParams) (*domain.Post, error) {
 	post := &domain.Post{
 		ID:              uuid.New().String(),
-		Title:           title,
-		Content:         content,
-		AuthorID:        authorID,
-		CommentsEnabled: commentsEnabled,
+		Title:           params.Title,
+		Content:         params.Content,
+		AuthorID:        params.AuthorID,
+		CommentsEnabled: params.CommentsEnabled,
 		CreatedAt:       time.Now(),
 		UpdatedAt:       time.Now(),
 	}

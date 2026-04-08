@@ -29,39 +29,32 @@ func NewCommentService(
 	}
 }
 
-func (s *CommentService) CreateComment(
-	ctx context.Context,
-	postID string,
-	parentID *string,
-	authorID string,
-	content string,
-) (*domain.Comment, error) {
-	post, err := s.postRepo.GetByID(ctx, postID)
+func (s *CommentService) CreateComment(ctx context.Context, params *port.CreateCommentParams) (*domain.Comment, error) {
+	post, err := s.postRepo.GetByID(ctx, params.PostID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get post: %w", err)
 	}
 	if !post.CommentsEnabled {
 		return nil, domain.ErrCommentsDisabled
 	}
-	if parentID != nil {
-		parent, err := s.commentRepo.GetByID(ctx, *parentID)
+	if params.ParentID != nil {
+		parent, err := s.commentRepo.GetByID(ctx, *params.ParentID)
 		if err != nil {
 			return nil, domain.ErrParentNotFound
 		}
-		if err := s.validateCommentDepth(ctx, *parentID); err != nil {
+		if err := s.validateCommentDepth(ctx, *params.ParentID); err != nil {
 			return nil, err
 		}
-		if parent.PostID != postID {
-			return nil, domain.ErrParentFromDifferentPost
+		if parent.PostID != params.PostID {
+			return nil, fmt.Errorf("parent comment belongs to different post")
 		}
 	}
-
 	comment := &domain.Comment{
 		ID:        uuid.New().String(),
-		PostID:    postID,
-		ParentID:  parentID,
-		Content:   content,
-		AuthorID:  authorID,
+		PostID:    params.PostID,
+		ParentID:  params.ParentID,
+		Content:   params.Content,
+		AuthorID:  params.AuthorID,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
@@ -82,28 +75,21 @@ func (s *CommentService) GetCommentByID(ctx context.Context, id string) (*domain
 	return comment, nil
 }
 
-func (s *CommentService) ListComments(
-	ctx context.Context,
-	postID string,
-	parentID *string,
-	cursor string,
-	limit int,
-) (*port.CommentListResult, error) {
-	exists, err := s.postRepo.Exists(ctx, postID)
+func (s *CommentService) ListComments(ctx context.Context, params *port.ListCommentParams) (*port.CommentListResult, error) {
+	exists, err := s.postRepo.Exists(ctx, params.PostID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check post existence: %w", err)
 	}
 	if !exists {
 		return nil, domain.ErrPostNotFound
 	}
-
-	params := port.CommentListParams{
-		PostID:   postID,
-		ParentID: parentID,
-		Cursor:   cursor,
-		Limit:    limit,
+	repoParams := port.CommentListParams{
+		PostID:   params.PostID,
+		ParentID: params.ParentID,
+		Cursor:   params.Cursor,
+		Limit:    params.Limit,
 	}
-	result, err := s.commentRepo.List(ctx, params)
+	result, err := s.commentRepo.List(ctx, repoParams)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list comments: %w", err)
 	}
