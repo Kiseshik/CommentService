@@ -5,9 +5,11 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/Kiseshik/CommentService.git/internal/core/domain"
 	"github.com/Kiseshik/CommentService.git/internal/core/port"
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -42,7 +44,17 @@ const createCommentQuery = `
 	)
 `
 
-func (r *CommentRepository) Create(ctx context.Context, comment *domain.Comment) error {
+func (r *CommentRepository) Create(ctx context.Context, params *port.CreateCommentParams) (*domain.Comment, error) {
+	comment := &domain.Comment{
+		ID:        uuid.New().String(),
+		PostID:    params.PostID,
+		ParentID:  params.ParentID,
+		Content:   params.Content,
+		AuthorID:  params.AuthorID,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
 	_, err := r.db.ExecContext(ctx, createCommentQuery,
 		comment.ID,
 		comment.PostID,
@@ -53,9 +65,9 @@ func (r *CommentRepository) Create(ctx context.Context, comment *domain.Comment)
 		comment.UpdatedAt,
 	)
 	if err != nil {
-		return fmt.Errorf("failed to create comment: %w", err)
+		return nil, fmt.Errorf("failed to create comment: %w", err)
 	}
-	return nil
+	return comment, nil
 }
 
 const getCommentByIDQuery = `
@@ -91,20 +103,21 @@ const updateCommentQuery = `
 	where id = $3
 `
 
-func (r *CommentRepository) Update(ctx context.Context, comment *domain.Comment) error {
+func (r *CommentRepository) Update(ctx context.Context, params *port.UpdateCommentParams) (*domain.Comment, error) {
+	updatedAt := time.Now()
 	result, err := r.db.ExecContext(ctx, updateCommentQuery,
-		comment.Content,
-		comment.UpdatedAt,
-		comment.ID,
+		params.Content,
+		updatedAt,
+		params.ID,
 	)
 	if err != nil {
-		return fmt.Errorf("failed to update comment: %w", err)
+		return nil, fmt.Errorf("failed to update comment: %w", err)
 	}
 	rows, _ := result.RowsAffected()
 	if rows == 0 {
-		return domain.ErrCommentNotFound
+		return nil, domain.ErrCommentNotFound
 	}
-	return nil
+	return r.GetByID(ctx, params.ID)
 }
 
 const deleteCommentQuery = `

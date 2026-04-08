@@ -13,3 +13,6 @@ type PostRepository interface {
 	List(ctx context.Context) ([]*domain.Post, error)
 	Exists(ctx context.Context, id string) (bool, error)
 }
+
+//todo по идее то можно передавать и по значению парметры в методы репы потому что структура небольшая, разницы не будет
+//todo сделай апдейт позже мейби

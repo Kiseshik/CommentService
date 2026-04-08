@@ -33,22 +33,3 @@ func (p *Post) GetCreatedAt() time.Time {
 func (p *Post) GetID() string {
 	return p.ID
 }
-
-func (p *Post) Validate() error {
-	if p.Title == "" {
-		return errors.New("post title is required")
-	}
-	if len(p.Title) > MaxPostTitleLength {
-		return errors.New("post title exceeds maximum length")
-	}
-	if p.Content == "" {
-		return errors.New("post content is required")
-	}
-	if len(p.Content) > MaxPostContentLength {
-		return errors.New("post content exceeds maximum length")
-	}
-	if p.AuthorID == "" {
-		return errors.New("post author_id is required")
-	}
-	return nil
-}

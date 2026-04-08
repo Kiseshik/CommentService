@@ -2,6 +2,7 @@ package port
 
 import (
 	"context"
+	"errors"
 
 	"github.com/Kiseshik/CommentService.git/internal/core/domain"
 )
@@ -24,4 +25,20 @@ type ListCommentParams struct {
 	ParentID *string
 	Cursor   string
 	Limit    int
+}
+
+func (p *CreateCommentParams) Validate() error {
+	if p.PostID == "" {
+		return errors.New("comment post_id is required")
+	}
+	if p.Content == "" {
+		return domain.ErrEmptyComment
+	}
+	if len(p.Content) > domain.MaxCommentLength {
+		return domain.ErrCommentTooLong
+	}
+	if p.AuthorID == "" {
+		return errors.New("comment author_id is required")
+	}
+	return nil
 }

@@ -2,6 +2,7 @@ package port
 
 import (
 	"context"
+	"errors"
 
 	"github.com/Kiseshik/CommentService.git/internal/core/domain"
 )
@@ -20,6 +21,25 @@ type CreatePostParams struct {
 	Content         string
 	AuthorID        string
 	CommentsEnabled bool
+}
+
+func (p *CreatePostParams) Validate() error {
+	if p.Title == "" {
+		return errors.New("post title is required")
+	}
+	if len(p.Title) > domain.MaxPostTitleLength {
+		return errors.New("post title exceeds maximum length")
+	}
+	if p.Content == "" {
+		return errors.New("post content is required")
+	}
+	if len(p.Content) > domain.MaxPostContentLength {
+		return errors.New("post content exceeds maximum length")
+	}
+	if p.AuthorID == "" {
+		return errors.New("post author_id is required")
+	}
+	return nil
 }
 
 type UpdatePostParams struct {

@@ -19,13 +19,7 @@ func NewPostService(postRepo port.PostRepository) *PostService {
 }
 
 func (s *PostService) CreatePost(ctx context.Context, params *port.CreatePostParams) (*domain.Post, error) {
-	tempPost := &domain.Post{
-		Title:           params.Title,
-		Content:         params.Content,
-		AuthorID:        params.AuthorID,
-		CommentsEnabled: params.CommentsEnabled,
-	}
-	if err := tempPost.Validate(); err != nil {
+	if err := params.Validate(); err != nil {
 		return nil, fmt.Errorf("%w: %v", domain.ErrInvalidInput, err)
 	}
 	return s.postRepo.Create(ctx, params)

@@ -36,19 +36,3 @@ func (c *Comment) GetCreatedAt() time.Time {
 func (c *Comment) GetID() string {
 	return c.ID
 }
-
-func (c *Comment) Validate() error {
-	if c.PostID == "" {
-		return errors.New("comment post_id is required")
-	}
-	if c.Content == "" {
-		return ErrEmptyComment
-	}
-	if len(c.Content) > MaxCommentLength {
-		return ErrCommentTooLong
-	}
-	if c.AuthorID == "" {
-		return errors.New("comment author_id is required")
-	}
-	return nil
-}

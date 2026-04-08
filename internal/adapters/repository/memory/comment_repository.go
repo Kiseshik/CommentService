@@ -7,6 +7,7 @@ import (
 
 	"github.com/Kiseshik/CommentService.git/internal/core/domain"
 	"github.com/Kiseshik/CommentService.git/internal/core/port"
+	"github.com/google/uuid"
 )
 
 type CommentRepository struct {
@@ -32,30 +33,35 @@ func (r *CommentRepository) GetByID(ctx context.Context, id string) (*domain.Com
 	return c, nil
 }
 
-func (r *CommentRepository) Create(ctx context.Context, comment *domain.Comment) error {
+func (r *CommentRepository) Create(ctx context.Context, params *port.CreateCommentParams) (*domain.Comment, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	if _, exists := r.store[comment.ID]; exists {
-		return domain.ErrCommentAlreadyExists
+	comment := &domain.Comment{
+		ID:        uuid.New().String(),
+		PostID:    params.PostID,
+		ParentID:  params.ParentID,
+		Content:   params.Content,
+		AuthorID:  params.AuthorID,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
-	now := time.Now()
-	comment.CreatedAt = now
-	comment.UpdatedAt = now
 	r.store[comment.ID] = comment
-	return nil
+	return comment, nil
 }
 
-func (r *CommentRepository) Update(ctx context.Context, comment *domain.Comment) error {
+func (r *CommentRepository) Update(ctx context.Context, params *port.UpdateCommentParams) (*domain.Comment, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	existingCom, exists := r.store[comment.ID]
-	if !exists {
-		return domain.ErrCommentNotFound
+	existing, ok := r.store[params.ID]
+	if !ok {
+		return nil, domain.ErrCommentNotFound
 	}
-	comment.CreatedAt = existingCom.CreatedAt
-	comment.UpdatedAt = time.Now()
-	r.store[comment.ID] = comment
-	return nil
+	if params.Content != nil {
+		existing.Content = *params.Content
+	}
+	existing.UpdatedAt = time.Now()
+	r.store[existing.ID] = existing
+	return existing, nil
 }
 
 func (r *CommentRepository) Delete(ctx context.Context, id string) error {

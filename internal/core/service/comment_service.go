@@ -3,11 +3,9 @@ package service
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/Kiseshik/CommentService.git/internal/core/domain"
 	"github.com/Kiseshik/CommentService.git/internal/core/port"
-	"github.com/google/uuid"
 )
 
 const (
@@ -30,6 +28,9 @@ func NewCommentService(
 }
 
 func (s *CommentService) CreateComment(ctx context.Context, params *port.CreateCommentParams) (*domain.Comment, error) {
+	if err := params.Validate(); err != nil {
+		return nil, fmt.Errorf("%w: %v", domain.ErrInvalidInput, err)
+	}
 	post, err := s.postRepo.GetByID(ctx, params.PostID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get post: %w", err)
@@ -46,22 +47,11 @@ func (s *CommentService) CreateComment(ctx context.Context, params *port.CreateC
 			return nil, err
 		}
 		if parent.PostID != params.PostID {
-			return nil, fmt.Errorf("parent comment belongs to different post")
+			return nil, domain.ErrParentFromDifferentPost
 		}
 	}
-	comment := &domain.Comment{
-		ID:        uuid.New().String(),
-		PostID:    params.PostID,
-		ParentID:  params.ParentID,
-		Content:   params.Content,
-		AuthorID:  params.AuthorID,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
-	if err := comment.Validate(); err != nil {
-		return nil, fmt.Errorf("%w: %v", domain.ErrInvalidInput, err)
-	}
-	if err := s.commentRepo.Create(ctx, comment); err != nil {
+	comment, err := s.commentRepo.Create(ctx, params)
+	if err != nil {
 		return nil, fmt.Errorf("failed to create comment: %w", err)
 	}
 	return comment, nil

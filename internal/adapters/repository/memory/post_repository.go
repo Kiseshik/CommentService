@@ -50,12 +50,10 @@ func (r *PostRepository) Create(ctx context.Context, params *port.CreatePostPara
 func (r *PostRepository) Update(ctx context.Context, params *port.UpdatePostParams) (*domain.Post, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-
 	existing, ok := r.store[params.ID]
 	if !ok {
 		return nil, domain.ErrPostNotFound
 	}
-
 	if params.Title != nil {
 		existing.Title = *params.Title
 	}
@@ -66,7 +64,6 @@ func (r *PostRepository) Update(ctx context.Context, params *port.UpdatePostPara
 		existing.CommentsEnabled = *params.CommentsEnabled
 	}
 	existing.UpdatedAt = time.Now() //кажется это чище чем прописывать апдейтит эт в бизнес слое, разве нет?
-
 	r.store[existing.ID] = existing
 	return existing, nil
 }
