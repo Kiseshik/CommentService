@@ -31,32 +31,32 @@ func NewApiImplementation(
 // RegisterPrivateHandlers регистрирует приватные эндпоинты (с авторизацией)
 // RegisterInternalHandlers регистрирует внутренние эндпоинты (для других сервисов)
 
-func (a *api) RegisterPublicHandlers(group *gin.RouterGroup) {
-	group.POST("/health", a.Health)
+func (api *api) RegisterPublicHandlers(group *gin.RouterGroup) {
+	group.POST("/health", api.Health)
 
-	group.POST("/posts/list", a.ListPosts)
-	group.POST("/posts/create", a.CreatePost)
-	group.POST("/posts/get", a.GetPostByID)
-	group.POST("/posts/update", a.UpdatePost)
-	group.POST("/posts/toggle-comments", a.ToggleComments)
+	group.POST("/posts/list", api.ListPosts)
+	group.POST("/posts/create", api.CreatePost)
+	group.POST("/posts/get", api.GetPostByID)
+	group.POST("/posts/update", api.UpdatePost)
+	group.POST("/posts/toggle-comments", api.ToggleComments)
 
-	group.POST("/comments/list", a.ListComments)
-	group.POST("/comments/create", a.CreateComment)
+	group.POST("/comments/list", api.ListComments)
+	group.POST("/comments/create", api.CreateComment)
 }
 
-func (a *api) RegisterPrivateHandlers(group *gin.RouterGroup) {
+func (api *api) RegisterPrivateHandlers(group *gin.RouterGroup) {
 	// TODO: добавить JWT middleware и перенести сюда приватные эндпоинты
 }
 
-func (a *api) RegisterInternalHandlers(group *gin.RouterGroup) {
+func (api *api) RegisterInternalHandlers(group *gin.RouterGroup) {
 }
 
-func (a *api) Health(c *gin.Context) {
+func (api *api) Health(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
 
-func (a *api) ListPosts(c *gin.Context) {
-	posts, err := a.postService.ListPosts(c.Request.Context())
+func (api *api) ListPosts(c *gin.Context) {
+	posts, err := api.postService.ListPosts(c.Request.Context())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -78,7 +78,7 @@ func (a *api) ListPosts(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func (a *api) CreatePost(c *gin.Context) {
+func (api *api) CreatePost(c *gin.Context) {
 	var req dto.CreatePostRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -92,7 +92,7 @@ func (a *api) CreatePost(c *gin.Context) {
 		CommentsEnabled: req.CommentsEnabled,
 	}
 
-	post, err := a.postService.CreatePost(c.Request.Context(), params)
+	post, err := api.postService.CreatePost(c.Request.Context(), params)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -109,14 +109,14 @@ func (a *api) CreatePost(c *gin.Context) {
 	})
 }
 
-func (a *api) GetPostByID(c *gin.Context) {
+func (api *api) GetPostByID(c *gin.Context) {
 	var req dto.GetPostRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	post, err := a.postService.GetPostByID(c.Request.Context(), req.ID)
+	post, err := api.postService.GetPostByID(c.Request.Context(), req.ID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
@@ -133,14 +133,14 @@ func (a *api) GetPostByID(c *gin.Context) {
 	})
 }
 
-func (a *api) UpdatePost(c *gin.Context) {
+func (api *api) UpdatePost(c *gin.Context) {
 	var req dto.UpdatePostRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	post, err := a.postService.GetPostByID(c.Request.Context(), req.ID)
+	post, err := api.postService.GetPostByID(c.Request.Context(), req.ID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
@@ -156,7 +156,7 @@ func (a *api) UpdatePost(c *gin.Context) {
 		post.CommentsEnabled = *req.CommentsEnabled
 	}
 
-	if err := a.postService.UpdatePost(c.Request.Context(), post); err != nil {
+	if err := api.postService.UpdatePost(c.Request.Context(), post); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -172,19 +172,19 @@ func (a *api) UpdatePost(c *gin.Context) {
 	})
 }
 
-func (a *api) ToggleComments(c *gin.Context) {
+func (api *api) ToggleComments(c *gin.Context) {
 	var req dto.ToggleCommentsRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := a.postService.ToggleComments(c.Request.Context(), req.ID); err != nil {
+	if err := api.postService.ToggleComments(c.Request.Context(), req.ID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	post, err := a.postService.GetPostByID(c.Request.Context(), req.ID)
+	post, err := api.postService.GetPostByID(c.Request.Context(), req.ID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
@@ -201,7 +201,7 @@ func (a *api) ToggleComments(c *gin.Context) {
 	})
 }
 
-func (a *api) ListComments(c *gin.Context) {
+func (api *api) ListComments(c *gin.Context) {
 	var req dto.ListCommentsRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -215,7 +215,7 @@ func (a *api) ListComments(c *gin.Context) {
 		Limit:    req.Limit,
 	}
 
-	result, err := a.commentService.ListComments(c.Request.Context(), params)
+	result, err := api.commentService.ListComments(c.Request.Context(), params)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -241,7 +241,7 @@ func (a *api) ListComments(c *gin.Context) {
 	})
 }
 
-func (a *api) CreateComment(c *gin.Context) {
+func (api *api) CreateComment(c *gin.Context) {
 	var req dto.CreateCommentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -255,7 +255,7 @@ func (a *api) CreateComment(c *gin.Context) {
 		Content:  req.Content,
 	}
 
-	comment, err := a.commentService.CreateComment(c.Request.Context(), params)
+	comment, err := api.commentService.CreateComment(c.Request.Context(), params)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
