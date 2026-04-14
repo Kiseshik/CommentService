@@ -56,13 +56,20 @@ func (r *CommentRepository) Update(ctx context.Context, params *port.UpdateComme
 	if !ok {
 		return nil, domain.ErrCommentNotFound
 	}
+	updated := false
 	if params.Content != nil {
 		existing.Content = *params.Content
+		updated = true
 	}
-	existing.UpdatedAt = time.Now()
+	if updated {
+		existing.UpdatedAt = time.Now()
+	}
 	r.store[existing.ID] = existing
 	return existing, nil
 }
+
+//todo обнови потом другой метод апдейт, он тоже криво сделан
+//todo после обнови и докрути тесты, сейчас естественно они не работают
 
 func (r *CommentRepository) Delete(ctx context.Context, id string) error {
 	r.mu.Lock()

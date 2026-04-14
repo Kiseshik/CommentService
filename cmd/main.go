@@ -28,7 +28,7 @@ func main() {
 		}
 	}()
 
-	quit := make(chan os.Signal, 1)
+	quit := make(chan os.Signal, 2)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
